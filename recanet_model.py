@@ -21,10 +21,11 @@ class ReCaNet(nn.Module):
         
         self.fc1 = nn.Linear(self.item_embed_size + self.user_embed_size, self.h1)
         self.fc2 = nn.Linear(self.h1+1, self.h2)
-        self.fc3 = nn.LSTM(self.h2, self.h3)
-        self.fc4 = nn.LSTM(self.h3, self.h4)
+        self.lstm1 = nn.LSTM(self.h2, self.h3, batch_first=True, num_layers=1)
+        self.lstm2 = nn.LSTM(self.h3, self.h4, batch_first=True)
         self.fc5 = nn.Linear(self.h4, self.h5)
-        self.fc6 = nn.Linear(self.h5, 1)
+        self.fc6 = nn.Linear(self.h4, self.h5)
+        self.fc7 = nn.Linear(self.h5, 1)
 
     def forward(self, input1, input2, input3, input4):
         x1 = self.item_embedding(input1.to(torch.int64))
@@ -42,19 +43,21 @@ class ReCaNet(nn.Module):
         x12 = x11.unsqueeze(1).repeat(1, self.history_len, 1)
         
         x14 = x4.unsqueeze(2) #1x5
-       
         x15 = torch.cat((x12, x14), 2)#.transpose(-2,-1)
 
         x14 = F.relu(self.fc2(x15))
+        #mask = input4.bool()
+
+        x21, (hx, cx) = self.lstm1(x14)
         
-        x21, _= self.fc3(x14)
-        
-        x22, _ = self.fc4(x21[:, -1, :])
+        x22, _ = self.lstm2(x21)
+        x22 = x22[:, -1, :]
      
+        
         x = F.relu(self.fc5(x22))
+        x = F.relu(self.fc6(x))
       
-        output = self.fc6(x).view(-1)  
+        output = self.fc7(x).view(-1)  
         output = torch.sigmoid(output)
    
         return output.to(torch.float64)
-
