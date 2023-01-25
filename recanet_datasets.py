@@ -276,7 +276,7 @@ class RCNDataset(Dataset):
             print('Mode error')
 
         self.x1, self.x2, self.x3, self.x4, self.y = torch.tensor(self.x1).long(), torch.tensor(self.x2).long(),\
-                    torch.tensor(self.x3), torch.tensor(self.x4), torch.tensor(self.y)
+                    torch.FloatTensor(self.x3), torch.FloatTensor(self.x4), torch.FloatTensor(self.y)
 
     def __len__(self):
         return len(self.x1)
