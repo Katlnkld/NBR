@@ -3,6 +3,7 @@ import numpy as np
 import torch
 from torch.utils.data import DataLoader, Dataset
 import os
+from tqdm import tqdm
 
 # preparind dataset for torch.dataset class
 class PreDataset():
@@ -27,7 +28,7 @@ class PreDataset():
         self.item_counts_dict = dict(zip(item_counts['item_id'],item_counts['item_count']))
         print("filtered items:", len(self.item_counts_dict))
         
-        self.model_name = dataset+ 'recanet'
+        self.model_name = 'data/dunnhumby_cj/'+dataset+ '_recanet'
         self.dataset = dataset
         self.all_items = self.train_baskets[['item_id']].drop_duplicates()['item_id'].tolist()
         self.all_users = self.train_baskets[['user_id']].drop_duplicates()['user_id'].tolist()
@@ -83,7 +84,7 @@ class PreDataset():
         train_labels = []
         print('num users:', len(self.test_users))
 
-        for c,user in enumerate(self.test_users):
+        for c,user in tqdm(enumerate(self.test_users)):
             if c % 1000 ==1:
                 print(c , 'user passed')
 
@@ -194,7 +195,7 @@ class PreDataset():
         test_labels = []
 
         train_basket_items_dict['null'] = []
-        for c,user in enumerate(test_user_items_dict):
+        for c,user in tqdm(enumerate(test_user_items_dict)):
             if user not in train_user_baskets_dict:
                 continue
             if c % 100 ==1:
