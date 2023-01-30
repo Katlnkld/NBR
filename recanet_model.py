@@ -28,13 +28,13 @@ class ReCaNet(nn.Module):
         self.fc6 = nn.Linear(self.h4, self.h5)
         self.fc7 = nn.Linear(self.h5, 1)
 
-    def forward(self, input1, input2, input3, input4):
+    def forward(self, input1, input2, input4):
         x1 = self.item_embedding(input1.to(torch.int64))
         x1 = x1.view(-1, self.item_embed_size) #1x32
        
         x2 = self.user_embedding(input2.to(torch.int64))
         x2 = x2.view(-1, self.user_embed_size) #1x128
-        x3 = input3 # 1x5
+        # 1x5
         x4 = input4 # 1x5
         x4 = x4.unsqueeze(2)
         

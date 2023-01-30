@@ -22,11 +22,6 @@ class PreDataset():
         self.test_users = basket_per_user[basket_per_user['basket_id'] >= self.basket_count_min]['user_id'].tolist()
     
         print("number of test users:", len(self.test_users))
-
-        item_counts = self.train_baskets.groupby(['item_id']).size().to_frame(name = 'item_count').reset_index()
-        item_counts = item_counts[item_counts['item_count']>= min_item_count]
-        self.item_counts_dict = dict(zip(item_counts['item_id'],item_counts['item_count']))
-        print("filtered items:", len(self.item_counts_dict))
         
         self.model_name = 'data/dunnhumby_cj/'+dataset+ '_recanet'
         self.dataset = dataset
@@ -62,11 +57,11 @@ class PreDataset():
             print('Data allready in use')
             train_users = np.load(self.model_name +'_' + str(self.history_len) + '_train_users.npy')
             train_items = np.load(self.model_name +'_' + str(self.history_len) + '_train_items.npy')
-            train_history = np.load(self.model_name +'_' + str(self.history_len) + '_train_history.npy')
+      
             train_history2 = np.load(self.model_name +'_' + str(self.history_len) + '_train_history2.npy')
             train_labels = np.load(self.model_name +'_' + str(self.history_len)+ '_train_labels.npy')
-            return train_items,train_users, train_history, train_history2 , train_labels
-
+            return train_items,train_users, train_history2 , train_labels
+        row_counts = 0
         basket_items = self.train_baskets.groupby(['basket_id'])['item_id'].apply(list).reset_index()
         basket_items_dict = dict(zip(basket_items['basket_id'],basket_items['item_id']))
         basket_items_dict['null'] = []
@@ -140,6 +135,9 @@ class PreDataset():
                     #print(item, basket_items_dict[label_basket])
                     train_labels.append(float(item in basket_items_dict[label_basket]))
 
+                    row_counts +=1
+            print(row_counts)
+
         train_items = np.array(train_items)
         train_users = np.array(train_users)
         train_history = np.array(train_history)
@@ -154,21 +152,21 @@ class PreDataset():
 
         np.save(self.model_name +'_' + str(self.history_len) + '_train_items.npy',train_items)
         np.save(self.model_name +'_' + str(self.history_len) + '_train_users.npy',train_users)
-        np.save(self.model_name +'_' + str(self.history_len) + '_train_history.npy',train_history)
+      
         np.save(self.model_name +'_' + str(self.history_len) + '_train_history2.npy',train_history2)
         np.save(self.model_name +'_' + str(self.history_len) + '_train_labels.npy',train_labels)
 
-        return train_items,train_users, train_history, train_history2 , train_labels
+        return train_items,train_users, train_history2 , train_labels
     
     
     def create_test_data(self,test_data='test'):
         if os.path.isfile(self.model_name +'_' + str(self.history_len)+ '_'+test_data+'_users.npy'):
             test_users = np.load(self.model_name +'_' + str(self.history_len) + '_'+test_data+'_users.npy')
             test_items = np.load(self.model_name +'_' + str(self.history_len) + '_'+test_data+'_items.npy')
-            test_history = np.load(self.model_name +'_' + str(self.history_len) + '_'+test_data+'_history.npy')
+        
             test_history2 = np.load(self.model_name +'_' + str(self.history_len) + '_'+test_data+'_history2.npy')
             test_labels = np.load(self.model_name +'_' + str(self.history_len) + '_'+test_data+'_labels.npy')
-            return test_items, test_users, test_history, test_history2, test_labels
+            return test_items, test_users,  test_history2, test_labels
 
         train_basket_items = self.train_baskets.groupby(['basket_id'])['item_id'].apply(list).reset_index()
         train_basket_items_dict = dict(zip(train_basket_items['basket_id'],train_basket_items['item_id']))
@@ -256,11 +254,11 @@ class PreDataset():
 
         np.save(self.model_name +'_' + str(self.history_len) + '_'+test_data+'_items.npy',test_items)
         np.save(self.model_name +'_' + str(self.history_len) + '_'+test_data+'_users.npy',test_users)
-        np.save(self.model_name +'_' + str(self.history_len) + '_'+test_data+'_history.npy',test_history)
+       
         np.save(self.model_name +'_' + str(self.history_len) + '_'+test_data+'_history2.npy',test_history2)
         np.save(self.model_name +'_' + str(self.history_len) + '_'+test_data+'_labels.npy',test_labels)
 
-        return test_items, test_users, test_history, test_history2, test_labels
+        return test_items, test_users, test_history2, test_labels
 
 
 class RCNDataset(Dataset):
@@ -268,22 +266,22 @@ class RCNDataset(Dataset):
 
         self.mode = mode
         if self.mode=='train':
-            self.x1, self.x2, self.x3, self.x4, self.y = pre_dataset.create_train_data()
+            self.x1, self.x2,  self.x4, self.y = pre_dataset.create_train_data()
         elif self.mode=='val':
-            self.x1, self.x2, self.x3, self.x4, self.y = pre_dataset.create_test_data(test_data='val')
+            self.x1, self.x2,  self.x4, self.y = pre_dataset.create_test_data(test_data='val')
         elif self.mode=='test':
-            self.x1, self.x2, self.x3, self.x4, self.y = pre_dataset.create_test_data(test_data='test')
+            self.x1, self.x2,  self.x4, self.y = pre_dataset.create_test_data(test_data='test')
         else: 
             print('Mode error')
 
-        self.x1, self.x2, self.x3, self.x4, self.y = torch.tensor(self.x1).long(), torch.tensor(self.x2).long(),\
-                    torch.FloatTensor(self.x3), torch.FloatTensor(self.x4), torch.FloatTensor(self.y)
+        self.x1, self.x2,  self.x4, self.y = torch.tensor(self.x1).long(), torch.tensor(self.x2).long(),\
+                     torch.FloatTensor(self.x4), torch.FloatTensor(self.y)
 
     def __len__(self):
         return len(self.x1)
 
     def __getitem__(self, idx):
-        return self.x1[idx], self.x2[idx], self.x3[idx], self.x4[idx], self.y[idx]
+        return self.x1[idx], self.x2[idx], self.x4[idx], self.y[idx]
 
 ## loading to device
 def to_device(data, device):
