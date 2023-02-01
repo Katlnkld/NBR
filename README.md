@@ -1,5 +1,5 @@
 # NBR
-models for next bucket recommendation task
+**Models for next bucket recommendation task**
 
 Metrics on full data training in comparison with author`s tensorflow realization and two simple baselines:
 
