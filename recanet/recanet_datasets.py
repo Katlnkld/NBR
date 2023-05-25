@@ -16,6 +16,7 @@ class PreDataset():
         self.train_baskets = pd.read_csv(path_train)
         self.valid_baskets = pd.read_csv(path_val)
         self.test_baskets = pd.read_csv(path_test)
+        print('total number of users:', self.train_baskets.user_id.nunique())
         
         basket_per_user = self.train_baskets[['user_id','basket_id']].drop_duplicates() \
             .groupby('user_id').agg({'basket_id':'count'}).reset_index()
@@ -23,7 +24,7 @@ class PreDataset():
     
         print("number of test users:", len(self.test_users))
         
-        self.model_name = 'data/dunnhumby_cj/'+dataset+ '_recanet'
+        self.model_name = f'data/{dataset}/'+dataset
         self.dataset = dataset
         self.all_items = self.train_baskets[['item_id']].drop_duplicates()['item_id'].tolist()
         self.all_users = self.train_baskets[['user_id']].drop_duplicates()['user_id'].tolist()
@@ -53,6 +54,7 @@ class PreDataset():
             
             
     def create_train_data(self):
+        print(self.model_name +'_' + str(self.history_len) + '_train_users.npy')
         if os.path.isfile(self.model_name +'_' + str(self.history_len) + '_train_users.npy'):
             print('Data allready in use')
             train_users = np.load(self.model_name +'_' + str(self.history_len) + '_train_users.npy')
@@ -80,8 +82,8 @@ class PreDataset():
         print('num users:', len(self.test_users))
 
         for c,user in tqdm(enumerate(self.test_users)):
-            if c % 1000 ==1:
-                print(c , 'user passed')
+            #if c % 1000 ==1:
+            #    print(c , 'user passed')
 
             baskets = user_baskets_dict[user]
             item_seq = {}
@@ -94,7 +96,7 @@ class PreDataset():
                     item_seq[item].append(i)
 
 
-            for i in range(max(0,len(baskets)-50), len(baskets)):
+            for i in range(max(0,len(baskets)-20), len(baskets)):
                 label_basket = baskets[i]
                 all_history_baskets = baskets[:i]
                 items = []
@@ -136,7 +138,7 @@ class PreDataset():
                     train_labels.append(float(item in basket_items_dict[label_basket]))
 
                     row_counts +=1
-            print(row_counts)
+            #print(row_counts)
 
         train_items = np.array(train_items)
         train_users = np.array(train_users)
@@ -196,8 +198,8 @@ class PreDataset():
         for c,user in tqdm(enumerate(test_user_items_dict)):
             if user not in train_user_baskets_dict:
                 continue
-            if c % 100 ==1:
-                print(c , 'user passed')
+            #if c % 100 ==1:
+            #    print(c , 'user passed')
                 #break
 
             baskets = train_user_baskets_dict[user]

@@ -106,9 +106,9 @@ def create_instacart_data():
 
 def create_valuedshopper_data(input_file_path):
     #input_file_path = 'transactions/kaggle-acquire/transactions_sample.csv'
-    train_baskets_file_path = 'data/valued_shopper_sample/train_baskets.csv'
-    test_baskets_file_path = 'data/valued_shopper_sample/test_baskets.csv'
-    valid_baskets_file_path = 'data/valued_shopper_sample/valid_baskets.csv'
+    train_baskets_file_path = 'data/valued_shopper/train_baskets.csv'
+    test_baskets_file_path = 'data/valued_shopper/test_baskets.csv'
+    valid_baskets_file_path = 'data/valued_shopper/valid_baskets.csv'
 
     df = pd.read_csv(input_file_path)
     print(df.shape)

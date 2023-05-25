@@ -6,6 +6,17 @@ def recall_k(y_true, y_pred, k ):
     b = len(set(y_true))
     return a/b
 
+def precision_k(y_true, y_pred, k ):
+    a = len(set(y_pred[:k]).intersection(set(y_true)))
+    return a/k
+
+def hitrate_k(y_true, y_pred, k ):
+    a = len(set(y_pred[:k]).intersection(set(y_true)))
+    if a==0:
+        return 0
+    else:
+        return 1
+   
 
 def ndcg_k(y_true, y_pred, k):
     a = 0
