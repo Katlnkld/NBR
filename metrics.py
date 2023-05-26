@@ -1,4 +1,5 @@
 import numpy as np
+from tqdm import tqdm
 
 
 def recall_k(y_true, y_pred, k ):
@@ -46,7 +47,7 @@ def repeat_score_item(train_baskets):
     basket_items_dict = dict(zip(basket_items['basket_id'],basket_items['item_id']))
 
     rep_score = {}
-    for user in user_baskets_dict:
+    for user in tqdm(user_baskets_dict):
         baskets = user_baskets_dict[user]
         rep_score[user] = 0
         for i in range(len(baskets)):
@@ -94,3 +95,21 @@ def repeat_score_user(train_baskets):
             rep_score[user] += score/len(basket_items_dict[next_basket])
         rep_score[user]/=len(baskets)
     return rep_score
+
+def repeat_rate_user(df):
+    """Доля пользователей, которые покупали хоть один элемент повторно"""
+    
+    df_ui = df.groupby('user_id').item_id.nunique().reset_index().\
+            merge(df.groupby('user_id').item_id.count().reset_index(), on='user_id')
+    df_ui['repeated'] = (df_ui.item_id_y>df_ui.item_id_x).astype(int)
+    
+    return df_ui['repeated'].mean()
+    
+def repeat_rate_item(df):
+    """Доля элементов, которые юзеры покупали повторно хоть один раз"""
+    
+    df_ui = df.groupby('item_id').user_id.nunique().reset_index().\
+            merge(df.groupby('item_id').user_id.count().reset_index(), on='item_id')
+    df_ui['repeated'] = (df_ui.user_id_y>df_ui.user_id_x).astype(int)
+    
+    return df_ui['repeated'].mean()

@@ -50,9 +50,10 @@ def create_dunnhumby_cj_data(input_file_path):
     valid_baskets.to_csv(valid_baskets_file_path,index=False)
 
 def create_instacart_data():
-    prior_orders_file_path = 'instacart_2017_05_01/order_products__prior.csv'
-    train_orders_file_path = 'instacart_2017_05_01/order_products__train.csv'
-    orders_file_path = 'instacart_2017_05_01/orders.csv'
+    prior_orders_file_path = 'instacart-market-basket-analysis/order_products__prior.csv'
+    train_orders_file_path = 'instacart-market-basket-analysis/order_products__train.csv'
+    orders_file_path = 'instacart-market-basket-analysis/orders.csv'
+    
     train_baskets_file_path = 'data/instacart/train_baskets.csv'
     test_baskets_file_path = 'data/instacart/test_baskets.csv'
     valid_baskets_file_path = 'data/instacart/valid_baskets.csv'
@@ -71,6 +72,11 @@ def create_instacart_data():
     #print(all_orders.head())
 
     all_orders = all_orders.rename(columns={'order_id':'basket_id', 'product_id':'item_id'})
+    
+    #date
+    df_date = all_orders.fillna(0).groupby(['user_id', 'order_number', 'days_since_prior_order']).basket_id.count().reset_index()
+    df_date['date'] = df_date.groupby(['user_id'])['days_since_prior_order'].transform(pd.Series.cumsum)
+    all_orders = pd.merge(all_orders, df_date[['user_id','order_number','date']], on=['user_id','order_number'], how='left')
 
     #all_users = list(set(all_orders['user_id'].tolist()))
     #random_users_indices = np.random.choice(range(len(all_users)), 10000, replace=False)
@@ -84,6 +90,7 @@ def create_instacart_data():
     train_baskets = pd.concat([all_orders,test_baskets]).drop_duplicates(keep=False)
 
     all_users = list(set(test_baskets['user_id'].tolist()))
+    
     valid_indices = np.random.choice(range(len(all_users)),int(0.5*len(all_users)),
                                     replace=False)
     valid_users = [all_users[i] for i in valid_indices]
