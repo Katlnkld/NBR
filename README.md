@@ -1,5 +1,5 @@
 # NBR
-**Models for next bucket recommendation task**
+**Models for next basket recommendation task**
 
 Current results:
 
